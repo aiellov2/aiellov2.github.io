@@ -1,16 +1,670 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>Page Title</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Grade Ledger — A Weighted Reckoning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f1e8d4;
+  --paper-soft: #faf3e2;
+  --ink: #1c1610;
+  --ink-soft: #5a4d3e;
+  --rule: #c9bb9a;
+  --crimson: #8b1e1e;
+  --crimson-dark: #6b1414;
+  --gold: #b8893b;
+  --grade-a: #2d5a3d;
+  --grade-b: #4a6741;
+  --grade-c: #8b6914;
+  --grade-d: #a85a1f;
+  --grade-f: #8b1e1e;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse at top left, rgba(184, 137, 59, 0.10), transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(139, 30, 30, 0.06), transparent 55%);
+  background-attachment: fixed;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: multiply;
+}
+
+.page {
+  position: relative;
+  z-index: 2;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 4rem 2.5rem 6rem;
+}
+
+/* ---------- Header ---------- */
+.header {
+  text-align: center;
+  padding-bottom: 2.5rem;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.header::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--rule);
+  margin-top: 2.5rem;
+  position: relative;
+}
+
+.crest {
+  display: inline-block;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.1em;
+}
+
+.eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-size: clamp(2.75rem, 7vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  font-variation-settings: 'opsz' 144;
+}
+
+.title em {
+  font-style: italic;
+  color: var(--crimson);
+  font-weight: 500;
+}
+
+.subtitle {
+  margin-top: 1.25rem;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--ink-soft);
+  font-weight: 300;
+}
+
+/* ---------- Result Card ---------- */
+.result-card {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 2rem;
+  padding: 2.75rem 3rem;
+  margin-bottom: 3.5rem;
+  background: linear-gradient(180deg, rgba(255,253,247,0.55), rgba(255,253,247,0.2));
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  position: relative;
+}
+
+.result-card::before,
+.result-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--ink);
+}
+.result-card::before { top: 5px; }
+.result-card::after  { bottom: 5px; }
+
+.ornament {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gold);
+  font-size: 1.1rem;
+  font-family: 'Fraunces', serif;
+}
+.ornament.left  { left: 1rem; }
+.ornament.right { right: 1rem; }
+
+.metric {
+  text-align: center;
+}
+
+.metric-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.6rem;
+}
+
+.metric-value {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144;
+  font-size: 3.2rem;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.4s ease;
+}
+
+.letter-grade {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: 'opsz' 144;
+  font-size: 7.5rem;
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1;
+  color: var(--crimson);
+  transition: color 0.5s ease, transform 0.5s ease;
+  position: relative;
+}
+
+.letter-grade::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.4;
+}
+
+/* ---------- Ledger ---------- */
+.ledger {
+  margin-bottom: 2rem;
+}
+
+.ledger-head {
+  display: grid;
+  grid-template-columns: 2.4fr 0.9fr 0.9fr 0.9fr 0.9fr 2rem;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 2px solid var(--ink);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2.4fr 0.9fr 0.9fr 0.9fr 0.9fr 2rem;
+  gap: 1rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--rule);
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.row:hover {
+  background: rgba(255,253,247,0.45);
+}
+
+.row input {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  color: var(--ink);
+  font-size: 1rem;
+  padding: 0.35rem 0;
+  width: 100%;
+  border-bottom: 1px dotted transparent;
+  transition: border-color 0.2s;
+}
+
+.row input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.row input:focus {
+  outline: none;
+  border-bottom-color: var(--crimson);
+}
+
+.row input[type="number"] {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.row .computed {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--crimson-dark);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.remove-btn {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.remove-btn:hover {
+  background: var(--crimson);
+  color: var(--paper);
+  border-color: var(--crimson);
+}
+
+/* ---------- Actions ---------- */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.add-btn {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 0.9rem 1.75rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.add-btn::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--paper);
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.add-btn:hover {
+  background: var(--crimson);
+  transform: translateY(-2px);
+}
+
+.add-btn:hover::before {
+  opacity: 0.5;
+}
+
+.weight-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.05em;
+}
+
+.weight-status.warn {
+  color: var(--crimson);
+}
+
+.weight-status.ok {
+  color: var(--grade-a);
+}
+
+/* ---------- Scale Legend ---------- */
+.scale {
+  margin-top: 4.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.scale::before {
+  content: 'Marking Scheme';
+  position: absolute;
+  top: -0.7rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--paper);
+  padding: 0 1.5rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.scale-item {
+  text-align: center;
+}
+
+.scale-letter {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.scale-range {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  margin-top: 0.4rem;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  text-align: center;
+  margin-top: 4rem;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  font-weight: 300;
+}
+
+.footer::before,
+.footer::after {
+  content: '·';
+  margin: 0 0.75rem;
+  color: var(--gold);
+}
+
+/* ---------- Animations ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInSlow {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.row { animation: fadeIn 0.3s ease both; }
+.header, .result-card { animation: fadeInSlow 0.7s ease both; }
+.result-card { animation-delay: 0.1s; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .page { padding: 2.5rem 1.25rem 4rem; }
+
+  .result-card {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 1rem;
+    padding: 2rem 1.5rem;
+  }
+  .result-card .metric:nth-child(2) {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+  .letter-grade { font-size: 5.5rem; }
+  .metric-value { font-size: 2.2rem; }
+
+  .ledger-head { display: none; }
+
+  .row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    padding: 1.1rem 1rem;
+    border: 1px solid var(--rule);
+    margin-bottom: 0.75rem;
+    background: rgba(255,253,247,0.3);
+  }
+  .row > [data-field="name"] {
+    grid-column: 1 / -1;
+    font-weight: 500;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.6rem;
+  }
+  .row input[type="number"],
+  .row .computed {
+    position: relative;
+    padding-top: 1.2rem;
+  }
+  .row input[data-field="earned"]::before { content: 'EARNED'; }
+  .row [data-mobile-label]::before {
+    content: attr(data-mobile-label);
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .row .remove-btn {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+  }
+  .row { position: relative; }
+
+  .scale { gap: 1.5rem; }
+}
+</style>
 </head>
-
 <body>
-    <h2>Welcome To GFG</h2>
-    <p>
-        Default code has been
-        loaded into the Editor.
-    </p>
-</body>
+<div class="page">
 
+  <header class="header">
+    <div class="crest">❦</div>
+    <div class="eyebrow">Vol. I · Calculus of Effort</div>
+    <h1 class="title">The Grade <em>Ledger</em></h1>
+    <p class="subtitle">A weighted reckoning of one's academic standing</p>
+  </header>
+
+  <section class="result-card">
+    <span class="ornament left">✦</span>
+    <span class="ornament right">✦</span>
+
+    <div class="metric">
+      <div class="metric-label">Weighted Average</div>
+      <div class="metric-value" id="percent">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Final Mark</div>
+      <div class="letter-grade" id="letter">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Total Weight</div>
+      <div class="metric-value" id="weight-total">0%</div>
+    </div>
+  </section>
+
+  <div class="ledger">
+    <div class="ledger-head">
+      <div>Assignment</div>
+      <div>Earned</div>
+      <div>Out Of</div>
+      <div>Weight %</div>
+      <div>Score</div>
+      <div></div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="actions">
+    <button class="add-btn" id="add">+ Inscribe Entry</button>
+    <div class="weight-status" id="status">Awaiting entries…</div>
+  </div>
+
+  <section class="scale">
+    <div class="scale-item"><div class="scale-letter">A</div><div class="scale-range">90 — 100</div></div>
+    <div class="scale-item"><div class="scale-letter">B</div><div class="scale-range">80 — 89</div></div>
+    <div class="scale-item"><div class="scale-letter">C</div><div class="scale-range">70 — 79</div></div>
+    <div class="scale-item"><div class="scale-letter">D</div><div class="scale-range">60 — 69</div></div>
+    <div class="scale-item"><div class="scale-letter">F</div><div class="scale-range">below 60</div></div>
+  </section>
+
+  <footer class="footer">Quod scripsi, scripsi</footer>
+</div>
+
+<script>
+  const rowsContainer = document.getElementById('rows');
+  const addBtn        = document.getElementById('add');
+  const percentEl     = document.getElementById('percent');
+  const letterEl      = document.getElementById('letter');
+  const weightEl      = document.getElementById('weight-total');
+  const statusEl      = document.getElementById('status');
+
+  let rowId = 0;
+
+  const seed = [
+    { name: 'Midterm Examination', earned: 88, total: 100, weight: 30 },
+    { name: 'Research Paper',      earned: 92, total: 100, weight: 25 },
+    { name: 'Final Examination',   earned: '', total: 100, weight: 35 },
+    { name: 'Participation',       earned: 95, total: 100, weight: 10 },
+  ];
+
+  function createRow(data = {}) {
+    const id = rowId++;
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.dataset.id = id;
+    row.innerHTML = `
+      <input type="text"   data-field="name"   placeholder="e.g. Midterm Examination" value="${data.name ?? ''}">
+      <input type="number" data-field="earned" data-mobile-label="Earned" placeholder="—" value="${data.earned ?? ''}" min="0" step="0.01">
+      <input type="number" data-field="total"  data-mobile-label="Out of" placeholder="100" value="${data.total ?? ''}" min="0" step="0.01">
+      <input type="number" data-field="weight" data-mobile-label="Weight %" placeholder="—" value="${data.weight ?? ''}" min="0" step="0.01">
+      <div class="computed" data-field="computed" data-mobile-label="Score">—</div>
+      <button class="remove-btn" aria-label="Remove entry">×</button>
+    `;
+    row.querySelectorAll('input').forEach(i => i.addEventListener('input', recalc));
+    row.querySelector('.remove-btn').addEventListener('click', () => {
+      row.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+      row.style.opacity = '0';
+      row.style.transform = 'translateX(-10px)';
+      setTimeout(() => { row.remove(); recalc(); }, 200);
+    });
+    rowsContainer.appendChild(row);
+    return row;
+  }
+
+  function letterGrade(p) {
+    if (p >= 90) return { letter: 'A', color: 'var(--grade-a)' };
+    if (p >= 80) return { letter: 'B', color: 'var(--grade-b)' };
+    if (p >= 70) return { letter: 'C', color: 'var(--grade-c)' };
+    if (p >= 60) return { letter: 'D', color: 'var(--grade-d)' };
+    return         { letter: 'F', color: 'var(--grade-f)' };
+  }
+
+  function recalc() {
+    let totalWeight = 0;
+    let weightedSum = 0;
+    let hasAny = false;
+
+    rowsContainer.querySelectorAll('.row').forEach(row => {
+      const earned = parseFloat(row.querySelector('[data-field="earned"]').value);
+      const total  = parseFloat(row.querySelector('[data-field="total"]').value);
+      const weight = parseFloat(row.querySelector('[data-field="weight"]').value);
+      const cell   = row.querySelector('[data-field="computed"]');
+
+      if (!isNaN(weight)) totalWeight += weight;
+
+      if (!isNaN(earned) && !isNaN(total) && total > 0 && !isNaN(weight)) {
+        const pct = (earned / total) * 100;
+        cell.textContent = pct.toFixed(1) + '%';
+        weightedSum += pct * weight;
+        hasAny = true;
+      } else {
+        cell.textContent = '—';
+      }
+    });
+
+    weightEl.textContent = totalWeight.toFixed(0) + '%';
+
+    if (hasAny && totalWeight > 0) {
+      const finalPct = weightedSum / totalWeight;
+      percentEl.textContent = finalPct.toFixed(1) + '%';
+      const { letter, color } = letterGrade(finalPct);
+      letterEl.textContent = letter;
+      letterEl.style.color = color;
+    } else {
+      percentEl.textContent = '—';
+      letterEl.textContent = '—';
+      letterEl.style.color = 'var(--ink-soft)';
+    }
+
+    statusEl.classList.remove('warn', 'ok');
+    if (rowsContainer.children.length === 0) {
+      statusEl.textContent = 'Awaiting entries…';
+    } else if (Math.abs(totalWeight - 100) < 0.01) {
+      statusEl.textContent = '✓ Weights total exactly 100%';
+      statusEl.classList.add('ok');
+    } else if (totalWeight > 100) {
+      statusEl.textContent = `Weights exceed 100% by ${(totalWeight - 100).toFixed(1)}`;
+      statusEl.classList.add('warn');
+    } else {
+      statusEl.textContent = `Weights total ${totalWeight.toFixed(1)}% — short by ${(100 - totalWeight).toFixed(1)}`;
+      statusEl.classList.add('warn');
+    }
+  }
+
+  addBtn.addEventListener('click', () => {
+    const row = createRow();
+    recalc();
+    row.querySelector('input').focus();
+  });
+
+  seed.forEach(d => createRow(d));
+  recalc();
+</script>
+</body>
 </html>
